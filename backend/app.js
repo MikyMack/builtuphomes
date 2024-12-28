@@ -9,8 +9,7 @@ const upload = require('./config/multer-config');
 
 // Routes
 const authRoutes = require('./routes/authRoutes');
-const testimonialRoutes = require('./routes/testimonials');
-const clientReviewRoutes = require('./routes/clientReviews');
+
 const authMiddleware = require('./middleware/auth');
 
 // Controllers
