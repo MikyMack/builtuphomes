@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Admin Reviews</title>
+    <link rel="shortcut icon" href="img/logo.png" />
+    <link rel="stylesheet" href="css/plugins.css" />
+    <link rel="stylesheet" href="css/style.css" />
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+
+<!-- Top Navbar -->
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+    <div class="container-fluid">
+        <a class="navbar-brand" href="/admin-dashboard">
+            <img src="img/logo.png" style="width: 50px;" alt="Logo">
+        </a>
+        <div class="ms-auto">
+            <a href="/logout" class="btn btn-outline-light">
+                <i class="fas fa-sign-out-alt"></i> Logout
+            </a>
+        </div>
+    </div>
+</nav>
+
+<div class="container-fluid">
+    <div class="row">
+        <!-- Sidebar -->
+        <div class="col-md-2 sidebar">
+            <a href="/admin-dashboard"><i class="fas fa-project-diagram"></i> Project Management</a>
+            <a href="/admin-testinomials"><i class="fas fa-star"></i> Testimonials</a>
+            <a href="/admin-reviews" class="active"><i class="fas fa-comments"></i> Reviews</a>
+        </div>
+
+        <!-- Main Content -->
+        <div class="col-md-10 p-4">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2>Reviews Management</h2>
+                <button class="btn btn-success" onclick="openAddModal()">
+                    <i class="fas fa-plus"></i> Add New Review
+                </button>
+            </div>
+            
+            <div class="reviews-container" id="reviewsContainer">
+                <!-- Reviews will be loaded here dynamically -->
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add/Edit Review Modal -->
+<div class="modal fade" id="reviewModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalTitle">Add New Review</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="reviewForm">
+                    <input type="hidden" id="reviewId">
+                    <div class="mb-3">
+                        <label for="name" class="form-label">Name</label>
+                        <input type="text" class="form-control" id="name" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="rating" class="form-label">Rating</label>
+                        <select class="form-control" id="rating" required>
+                            <option value="1">1 Star</option>
+                            <option value="2">2 Stars</option>
+                            <option value="3">3 Stars</option>
+                            <option value="4">4 Stars</option>
+                            <option value="5">5 Stars</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="description" class="form-label">Description</label>
+                        <textarea class="form-control" id="description" rows="3" required></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary" onclick="saveReview()">Save</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+const reviewModal = new bootstrap.Modal(document.getElementById('reviewModal'));
+
+function loadReviews() {
+    fetch('/api/client-reviews')
+        .then(response => response.json())
+        .then(reviews => {
+            const container = document.getElementById('reviewsContainer');
+            container.innerHTML = '';
+            reviews.forEach(review => {
+                container.appendChild(createReviewCard(review));
+            });
+        })
+        .catch(error => console.error('Error:', error));
+}
+
+function createReviewCard(review) {
+    const div = document.createElement('div');
+    div.className = 'review-card';
+    div.innerHTML = `
+        <h4 class="mb-2">${review.name}</h4>
+        <div class="star-rating">
+            ${generateStars(review.rating)}
+        </div>
+        <p class="text-muted">${review.description}</p>
+        <div class="btn-group w-100 mt-3">
+            <button class="btn ${review.listed ? 'btn-primary' : 'btn-secondary'}" onclick="toggleListing('${review._id}')">
+                <i class="fas ${review.listed ? 'fa-check' : 'fa-times'}"></i> ${review.listed ? 'Listed' : 'Unlisted'}
+            </button>
+            <button class="btn btn-warning" onclick="editReview('${review._id}')">
+                <i class="fas fa-edit"></i> Edit
+            </button>
+            <button class="btn btn-danger" onclick="deleteReview('${review._id}')">
+                <i class="fas fa-trash"></i> Delete
+            </button>
+        </div>
+    `;
+    return div;
+}
+
+function generateStars(rating) {
+    let stars = '';
+    for (let i = 1; i <= 5; i++) {
+        stars += `<i class="fas fa-star${i <= rating ? '' : '-o'}"></i>`;
+    }
+    return stars;
+}
+
+function openAddModal() {
+    document.getElementById('reviewForm').reset();
+    document.getElementById('reviewId').value = '';
+    document.getElementById('modalTitle').textContent = 'Add New Review';
+    reviewModal.show();
+}
+
+function saveReview() {
+    const reviewId = document.getElementById('reviewId').value;
+    const reviewData = {
+        name: document.getElementById('name').value,
+        description: document.getElementById('description').value,
+        rating: parseInt(document.getElementById('rating').value)
+    };
+
+    const url = reviewId ? `/api/client-reviews/${reviewId}` : '/api/client-reviews';
+    const method = reviewId ? 'PUT' : 'POST';
+
+    fetch(url, {
+        method: method,
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(reviewData)
+    })
+    .then(response => response.json())
+    .then(data => {
+        loadReviews();
+        reviewModal.hide();
+    })
+    .catch(error => console.error('Error:', error));
+}
+
+function toggleListing(id) {
+    fetch(`/api/client-reviews/${id}/toggle-listing`, {
+        method: 'PUT'
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            loadReviews();
+        }
+    })
+    .catch(error => console.error('Error:', error));
+}
+
+function editReview(id) {
+    fetch(`/api/client-reviews/${id}`, {
+        method: 'PUT'
+    })
+        .then(response => response.json())
+        .then(review => {
+            document.getElementById('reviewId').value = review._id;
+            document.getElementById('name').value = review.name;
+            document.getElementById('description').value = review.description;
+            document.getElementById('rating').value = review.rating;
+            document.getElementById('modalTitle').textContent = 'Edit Review';
+            reviewModal.show();
+        })
+        .catch(error => console.error('Error:', error));
+}
+
+function deleteReview(id) {
+    if (confirm('Are you sure you want to delete this review?')) {
+        fetch(`/api/client-reviews/${id}`, {
+            method: 'DELETE'
+        })
+        .then(response => response.json())
+        .then(data => {
+            loadReviews();
+        })
+        .catch(error => console.error('Error:', error));
+    }
+}
+
+// Load reviews when page loads
+document.addEventListener('DOMContentLoaded', loadReviews);
+</script>
+
+</body>
+</html>

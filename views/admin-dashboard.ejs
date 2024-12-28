@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Admin Dashboard</title>
+    <link rel="shortcut icon" href="img/logo.png" />
+    <link rel="stylesheet" href="css/plugins.css" />
+    <link rel="stylesheet" href="css/style.css" />
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+
+<!-- Top Navbar -->
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+    <div class="container-fluid">
+        <a class="navbar-brand" href="/admin-dashboard">
+            <img src="img/logo.png" style="width: 50px;" alt="Logo">
+        </a>
+        <div class="ms-auto">
+            <a href="/logout" class="btn btn-outline-light">
+                <i class="fas fa-sign-out-alt"></i> Logout
+            </a>
+        </div>
+    </div>
+</nav>
+
+<div class="container-fluid">
+    <div class="row">
+        <!-- Sidebar -->
+        <div class="col-md-2 sidebar">
+            <a href="/admin-dashboard" class="active"><i class="fas fa-project-diagram"></i> Project Management</a>
+            <a href="/admin-testinomials" ><i class="fas fa-star"></i> Testimonials</a>
+            <a href="/admin-reviews"><i class="fas fa-comments"></i> Reviews</a>
+        </div>
+
+        <!-- Main Content -->
+        <div class="col-md-10 p-4">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2>Projects Management</h2>
+                <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#addProjectModal">
+                    <i class="fas fa-plus"></i> Add New Project
+                </button>
+            </div>
+            
+            <div class="projects-container" id="projectsContainer">
+                <!-- Projects will be loaded dynamically -->
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add Project Modal -->
+<div class="modal fade" id="addProjectModal" tabindex="-1" aria-labelledby="addProjectModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addProjectModalLabel">Add New Project</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="addProjectForm" enctype="multipart/form-data">
+                    <div class="mb-3">
+                        <label for="projectTitle" class="form-label">Project Title</label>
+                        <input type="text" class="form-control" id="projectTitle" name="title" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="projectDescription" class="form-label">Description</label>
+                        <textarea class="form-control" id="projectDescription" name="description" rows="3" required></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label for="projectPrice" class="form-label">Price</label>
+                        <input type="text" class="form-control" id="projectPrice" name="price" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="projectImages" class="form-label">Project Images (Maximum 4 images)</label>
+                        <input type="file" class="form-control" id="projectImages" name="images" multiple accept="image/*" required>
+                        <small class="text-muted">Select up to 4 images</small>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary" onclick="submitProject()">Add Project</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Project Modal -->
+<div class="modal fade" id="editProjectModal" tabindex="-1" aria-labelledby="editProjectModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editProjectModalLabel">Edit Project</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="editProjectForm" enctype="multipart/form-data">
+                    <input type="hidden" id="editProjectId">
+                    <div class="mb-3">
+                        <label for="editProjectTitle" class="form-label">Project Title</label>
+                        <input type="text" class="form-control" id="editProjectTitle" name="title" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="editProjectDescription" class="form-label">Description</label>
+                        <textarea class="form-control" id="editProjectDescription" name="description" rows="3" required></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label for="editProjectPrice" class="form-label">Price</label>
+                        <input type="text" class="form-control" id="editProjectPrice" name="price" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="editProjectImages" class="form-label">Project Images (Maximum 4 images)</label>
+                        <input type="file" class="form-control" id="editProjectImages" name="images" multiple accept="image/*">
+                        <small class="text-muted">Select up to 4 images. Leave empty to keep existing images.</small>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary" onclick="updateProject()">Save Changes</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+function loadProjects() {
+    fetch('/api/projects')
+        .then(response => response.json())
+        .then(projects => {
+            const container = document.getElementById('projectsContainer');
+            container.innerHTML = '';
+            
+            projects.forEach(project => {
+                const projectCard = document.createElement('div');
+                projectCard.className = 'project-card';
+                
+                const imagesHtml = `
+                    <div class="project-images">
+                        ${project.images.map(img => `<img src="${img}" alt="Project Image">`).join('')}
+                    </div>
+                `;
+                
+                projectCard.innerHTML = `
+                    ${imagesHtml}
+                    <h4 class="mb-3">${project.title}</h4>
+                    <p class="text-muted">${project.description}</p>
+                    <p class="text-primary fw-bold fs-5">₹${project.price}</p>
+                    <div class="btn-group w-100 mt-auto">
+                        <button class="btn ${project.listed ? 'btn-success' : 'btn-secondary'}" onclick="toggleListing('${project._id}')">
+                            <i class="fas ${project.listed ? 'fa-eye' : 'fa-eye-slash'}"></i> 
+                            ${project.listed ? 'Listed' : 'Unlisted'}
+                        </button>
+                        <button class="btn btn-warning" onclick="editProject('${project._id}')">
+                            <i class="fas fa-edit"></i> Edit
+                        </button>
+                        <button class="btn btn-danger" onclick="deleteProject('${project._id}')">
+                            <i class="fas fa-trash"></i> Delete
+                        </button>
+                    </div>
+                `;
+                
+                container.appendChild(projectCard);
+            });
+        })
+        .catch(error => {
+            console.error('Error loading projects:', error);
+            alert('Error loading projects. Please try again.');
+        });
+}
+
+function submitProject() {
+    const form = document.getElementById('addProjectForm');
+    const formData = new FormData(form);
+    
+    // Validate required fields
+    const title = formData.get('title');
+    const description = formData.get('description');
+    const price = formData.get('price');
+    const images = document.getElementById('projectImages').files;
+
+    if (!title || !description || !price || images.length === 0) {
+        alert('Please fill in all required fields and select at least one image');
+        return;
+    }
+
+    // Validate maximum 4 images
+    if (images.length > 4) {
+        alert('Please select a maximum of 4 images');
+        return;
+    }
+
+    // Clear any previous image entries
+    formData.delete('images');
+    
+    // Append files to formData (maximum 4)
+    for (let i = 0; i < Math.min(images.length, 4); i++) {
+        formData.append('images', images[i]);
+    }
+
+    fetch('/create-projects', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert('Project added successfully!');
+            loadProjects(); // Reload projects after adding new one
+            document.getElementById('addProjectModal').querySelector('.btn-close').click();
+            form.reset();
+        } else {
+            alert('Error adding project: ' + data.message);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Error adding project. Please try again.');
+    });
+}
+
+function editProject(projectId) {
+    fetch(`/api/projects/${projectId}`)
+        .then(response => response.json())
+        .then(project => {
+            document.getElementById('editProjectId').value = project._id;
+            document.getElementById('editProjectTitle').value = project.title;
+            document.getElementById('editProjectDescription').value = project.description;
+            document.getElementById('editProjectPrice').value = project.price;
+            
+            // Show the edit modal
+            new bootstrap.Modal(document.getElementById('editProjectModal')).show();
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Error loading project details. Please try again.');
+        });
+}
+
+function updateProject() {
+    const projectId = document.getElementById('editProjectId').value;
+    const form = document.getElementById('editProjectForm');
+    const formData = new FormData(form);
+    
+    fetch(`/api/projects/${projectId}`, {
+        method: 'PUT',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        alert('Project updated successfully!');
+        loadProjects();
+        document.getElementById('editProjectModal').querySelector('.btn-close').click();
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Error updating project. Please try again.');
+    });
+}
+
+function toggleListing(projectId) {
+    fetch(`/api/projects/${projectId}/toggle-listing`, {
+        method: 'PUT'
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            loadProjects();
+        } else {
+            alert('Error toggling project listing: ' + data.message);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Error toggling project listing. Please try again.');
+    });
+}
+
+function deleteProject(projectId) {
+    if (confirm('Are you sure you want to delete this project?')) {
+        fetch(`/api/projects/${projectId}`, {
+            method: 'DELETE'
+        })
+        .then(response => response.json())
+        .then(data => {
+            alert('Project deleted successfully');
+            loadProjects();
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Error deleting project. Please try again.');
+        });
+    }
+}
+
+// Load projects when page loads
+document.addEventListener('DOMContentLoaded', loadProjects);
+</script>
+
+</body>
+</html>
