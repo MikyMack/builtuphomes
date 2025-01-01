@@ -385,8 +385,12 @@ app.get('/building-valuation', (req, res) => {
 app.get('/login', (req, res) => {
     res.render('login', { title: 'Admin Login' }); 
 });
-app.get('/admin-dashboard', authMiddleware, (req, res) => {
-    res.render('admin-dashboard', { title: 'Admin dashboard' }); 
+app.get('/admin-dashboard', (req, res) => {
+    if (req.session && req.session.user) {
+        res.render('admin-dashboard', { title: 'Admin dashboard' });
+    } else {
+        res.redirect('/login');
+    }
 });
 app.get('/admin-testinomials', (req, res) => {
     res.render('admin-testinomials', { title: 'admin-testinomials' }); 
