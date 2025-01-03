@@ -1,58 +1,5 @@
 /* -----------------------------------------------------------------------------------
 
- 01. Google fonts
- 02. Basics style
- 03. Helper style - [NEW] 
- 04. Selection style 
- 05. Owl-Theme custom style
- 06. Section style
- 07. Navbar style
- 08. Header style
- 09. Slider style
- 10. Slider Left Panel style
- 11. Page Banner Header style
- 12. Content Lines style
- 13. Video Background - [NEW] 
- 14. About style 
- 15. Team style
- 16. Team Details style
- 17. Careers style - [NEW] 
- 18. Services style
- 19. Services2 style - [NEW]
- 20. Services3 style - [NEW]
- 21. Services4 style - [NEW]
- 22. Projects style
- 23. Projects2 (masonry) style
- 24. Projects3 style
- 25. Projects4 style
- 26. Project Gallery style
- 27. Project Page style - [NEW]  
- 28. Clients style
- 29. Gallery style
- 30. Promo Video and Testimonials style
- 31. Blog 1 style
- 32. Blog 2 style
- 33. Blog 3 style
- 34. Blog 4 style - [NEW]  
- 35. Post style
- 36. Contact style
- 37. Buttons style
- 38. Footer style
- 39. Corner style
- 40. Preloader style
- 41. toTop Button style
- 42. Accordion Box (for Faqs) style
- 43. Pricing plan style
- 44. Error Page - 404 style
- 45. Process style
- 46. Process 2 style - [NEW] 
- 47. Comming soon style
- 48. Overlay Effect Bg image style - [NEW]
- 49. Responsive (Media Query)
- 
------------------------------------------------------------------------------------ */
-
-
 
 /* ======= Google fonts (Oswald & Didact Gothic) ======= */
 @import url('https://fonts.googleapis.com/css2?family=Didact+Gothic&amp;family=Oswald:wght@200;300;400;500;600;700&amp;display=swap');
@@ -89,7 +36,7 @@ p {
     font-size: 16px;
     font-weight: 400;
     line-height: 1.75em;
-    color: #999;
+    color: #dad7d7;
     margin-bottom: 20px;
 }
 h1,
@@ -2881,7 +2828,7 @@ blockquote cite:before {
 
 /* ======= Clients style ======= */
 .clients {
-    background-color: #323232;
+    background-color: #006a65;
 }
 .clients .owl-carousel {
     margin: 20px 0;
